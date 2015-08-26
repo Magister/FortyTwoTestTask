@@ -5,6 +5,14 @@ A Django 1.6+ project template
 
 Use fortytwo_test_task.settings when deploying with getbarista.com
 
+### Local testing
+* create virtualenv, install requirements from requirements.txt with pip
+* make syncdb - runs syncdb
+* make migrate - runs migrations
+* make test - executes tests
+* make run - runs local development server
+
+
 ### Recomendations
 * apps in apps/ folder
 * use per-app templates folders
