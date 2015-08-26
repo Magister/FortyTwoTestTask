@@ -1,0 +1,16 @@
+[
+{
+  "pk": 1, 
+  "model": "hello.appuser", 
+  "fields": {
+    "bio": "I'm alive :)", 
+    "first_name": "Misha", 
+    "last_name": "Padalka", 
+    "other_contacts": "Some other contacts", 
+    "date_of_birth": "1980-01-01", 
+    "skype": "None", 
+    "jabber": "magister@jabber.ua", 
+    "email": "misha.cn.ua@gmail.com"
+  }
+}
+]
