@@ -1,5 +1,5 @@
-from .common import *
+from .common import *  # nopep8
 try:
-    from .local import *
+    from .local import *  # nopep8
 except ImportError:
     pass
