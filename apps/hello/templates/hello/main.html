@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'hello/css/hello.css' %}"/>
+{% endblock %}
+
+{% block content %}
+    {% for appuser in appusers %}
+        <div class="appuser">
+            <div class="col">
+                <label>Name</label>
+                {{ appuser.first_name }}
+                <label>Last name</label>
+                {{ appuser.last_name }}
+                <label>Date of birth</label>
+                {{ appuser.date_of_birth }}
+                <label>Bio</label>
+                {{ appuser.bio }}
+            </div>
+            <div class="col">
+                <label>Email</label>
+                {{ appuser.email }}
+                <label>Jabber</label>
+                {{ appuser.jabber }}
+                <label>Skype</label>
+                {{ appuser.skype }}
+                <label>Other contacts</label>
+                {{ appuser.other_contacts }}
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
