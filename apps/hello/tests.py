@@ -1,9 +1,10 @@
 from django.test import TestCase
 
 # Create your tests here.
+from apps.hello.models import AppUser
 
 
-class SomeTests(TestCase):
-    def test_math(self):
-        "put docstrings in your tests"
-        assert(2 + 2 == 5)
+class TestModel(TestCase):
+    def test_model_has_data(self):
+        "Tests that model for storing user data exists"
+        assert(AppUser.objects.count() == 1)
