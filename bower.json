@@ -1,0 +1,21 @@
+{
+  "name": "forty-two-test-task",
+  "version": "0.0.1",
+  "homepage": "https://github.com/Magister/FortyTwoTestTask",
+  "authors": [
+    "Misha Padalka <misha.cn.ua@gmail.com>"
+  ],
+  "description": "Test project for 42cc",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.5"
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,12 @@
+{
+  "name": "forty-two-test-task",
+  "description": "Test project for 42cc",
+  "version": "0.0.1",
+  "homepage": "https://github.com/Magister/FortyTwoTestTask",
+  "private": "true",
+  "dependencies": {},
+  "devDependencies": {
+    "bower": "latest"
+  },
+  "scripts": {}
+}

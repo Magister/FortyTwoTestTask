@@ -1,0 +1,13 @@
+
+.appuser {
+    display: flex;
+    justify-content: space-between;
+}
+
+.element {
+    padding: 3px 0;
+}
+
+.element label {
+    width: 25%;
+}

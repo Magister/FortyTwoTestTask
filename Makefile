@@ -5,7 +5,7 @@ test:
 	PYTHONPATH=`pwd` DJANGO_SETTINGS_MODULE=$(SETTINGS) $(MANAGE) test
 	flake8 --exclude '*migrations*' apps fortytwo_test_task
 
-run:
+run: bower-install
 	PYTHONPATH=`pwd` DJANGO_SETTINGS_MODULE=$(SETTINGS) $(MANAGE) runserver
 
 syncdb:
@@ -14,6 +14,15 @@ syncdb:
 migrate:
 	PYTHONPATH=`pwd` DJANGO_SETTINGS_MODULE=$(SETTINGS) $(MANAGE) migrate
 
-collectstatic:
+collectstatic: bower-install
 	PYTHONPATH=`pwd` DJANGO_SETTINGS_MODULE=$(SETTINGS) $(MANAGE) collectstatic --noinput
-.PHONY: test syncdb migrate
+
+bower-install: node_modules/.bin/bower assets/libs
+
+node_modules/.bin/bower:
+	npm install bower && touch node_modules/.bin/bower
+
+assets/libs: bower.json Makefile
+	node_modules/.bin/bower install --config.interactive=false && touch assets/libs
+
+.PHONY: test syncdb migrate bower-install

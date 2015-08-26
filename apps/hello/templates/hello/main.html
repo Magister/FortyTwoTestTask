@@ -2,32 +2,52 @@
 {% load staticfiles %}
 
 {% block extra_head %}
+    <link rel="stylesheet" href="{% static 'libs/bootstrap/dist/css/bootstrap.min.css' %}"/>
     <link rel="stylesheet" href="{% static 'hello/css/hello.css' %}"/>
 {% endblock %}
 
 {% block content %}
-    {% for appuser in appusers %}
-        <div class="appuser">
-            <div class="col">
-                <label>Name</label>
-                {{ appuser.first_name }}
-                <label>Last name</label>
-                {{ appuser.last_name }}
-                <label>Date of birth</label>
-                {{ appuser.date_of_birth }}
-                <label>Bio</label>
-                {{ appuser.bio }}
+    <div class="container">
+        <div class="page-header">
+            <h1>42 Coffee Cups Test Assignment</h1>
+        </div>
+        {% for appuser in appusers %}
+        <div class="appuser row">
+            <div class="col-sm-6">
+                <div class="element">
+                    <label>{{ appuser.first_name }}</label>
+                </div>
+                <div class="element">
+                    <label>{{ appuser.last_name }}</label>
+                </div>
+                <div class="element">
+                    <label>{{ appuser.date_of_birth|date }}</label>
+                </div>
+                <div class="element">
+                    <label>Bio:</label>
+                    <p>{{ appuser.bio }}</p>
+                </div>
             </div>
-            <div class="col">
-                <label>Email</label>
-                {{ appuser.email }}
-                <label>Jabber</label>
-                {{ appuser.jabber }}
-                <label>Skype</label>
-                {{ appuser.skype }}
-                <label>Other contacts</label>
-                {{ appuser.other_contacts }}
+            <div class="col-sm-6">
+                <h4>Contacts</h4>
+                <div class="element">
+                    <label>Email:</label>
+                    <span>{{ appuser.email }}</span>
+                </div>
+                <div class="element">
+                    <label>Jabber:</label>
+                    <span>{{ appuser.jabber }}</span>
+                </div>
+                <div class="element">
+                    <label>Skype:</label>
+                    <span>{{ appuser.skype }}</span>
+                </div>
+                <div class="element">
+                    <label>Other contacts:</label>
+                    <p>{{ appuser.other_contacts }}</p>
+                </div>
             </div>
         </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
 {% endblock %}
