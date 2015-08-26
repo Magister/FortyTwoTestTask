@@ -3,7 +3,7 @@
   "pk": 1, 
   "model": "hello.appuser", 
   "fields": {
-    "bio": "I'm alive :)", 
+    "bio": "I'm alive!\r\nAnd that's good :)",
     "first_name": "Misha", 
     "last_name": "Padalka", 
     "other_contacts": "Some other contacts", 

@@ -25,10 +25,15 @@ class TestMainView(TestCase):
         for user in users:
             self.assertContains(response, escape(user.first_name))
             self.assertContains(response, escape(user.last_name))
-            self.assertContains(response, escape(user.bio))
-            self.assertContains(response,
-                                defaultfilters.date(user.date_of_birth))
+            self.assertContains(
+                response,
+                defaultfilters.linebreaksbr(escape(user.bio)))
+            self.assertContains(
+                response,
+                defaultfilters.date(user.date_of_birth))
             self.assertContains(response, escape(user.email))
             self.assertContains(response, escape(user.skype))
             self.assertContains(response, escape(user.jabber))
-            self.assertContains(response, escape(user.other_contacts))
+            self.assertContains(
+                response,
+                defaultfilters.linebreaksbr(escape(user.other_contacts)))
