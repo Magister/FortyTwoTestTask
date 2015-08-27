@@ -5,6 +5,6 @@ from apps.hello.models import AppUser
 
 
 def index(request):
-    app_users = AppUser.objects.all()
-    context = {'appusers': app_users}
+    app_user = AppUser.objects.get(pk=1)
+    context = {'appuser': app_user}
     return render(request, 'hello/main.html', context)
