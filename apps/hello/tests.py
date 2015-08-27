@@ -8,10 +8,12 @@ from apps.hello.models import AppUser
 
 
 class TestAppUser(TestCase):
-    def test_model_has_data(self):
+    def test_model_has_one_user(self):
         """Tests that model for storing user data exists and
-        and has initial data loaded from fixture"""
+        and has initial data loaded from fixture
+        There should be exactly one user with pk=1"""
         self.assertEqual(AppUser.objects.count(), 1)
+        self.assertEqual(AppUser.objects.first().pk, 1)
 
 
 class TestMainView(TestCase):
@@ -19,21 +21,33 @@ class TestMainView(TestCase):
 
     def test_page_has_data(self):
         """Tests that main page has data from db"""
-        users = AppUser.objects.all()
+        user = AppUser.objects.get(pk=1)
         response = self.c.get(reverse('index'))
         self.assertEqual(response.status_code, 200)
-        for user in users:
-            self.assertContains(response, escape(user.first_name))
-            self.assertContains(response, escape(user.last_name))
-            self.assertContains(
-                response,
-                defaultfilters.linebreaksbr(escape(user.bio)))
-            self.assertContains(
-                response,
-                defaultfilters.date(user.date_of_birth))
-            self.assertContains(response, escape(user.email))
-            self.assertContains(response, escape(user.skype))
-            self.assertContains(response, escape(user.jabber))
-            self.assertContains(
-                response,
-                defaultfilters.linebreaksbr(escape(user.other_contacts)))
+        self.assertContains(response, escape(user.first_name))
+        self.assertContains(response, escape(user.last_name))
+        self.assertContains(
+            response,
+            defaultfilters.linebreaksbr(escape(user.bio)))
+        self.assertContains(
+            response,
+            defaultfilters.date(user.date_of_birth))
+        self.assertContains(response, escape(user.email))
+        self.assertContains(response, escape(user.skype))
+        self.assertContains(response, escape(user.jabber))
+        self.assertContains(
+            response,
+            defaultfilters.linebreaksbr(escape(user.other_contacts)))
+
+    def test_using_correct_template(self):
+        """Tests that we used a correct template"""
+        response = self.c.get(reverse('index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'hello/main.html')
+
+    def test_context_has_data(self):
+        """Tests that context has all needed data"""
+        response = self.c.get(reverse('index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.context['appuser'])
+        self.assertEqual(response.context['appuser'].pk, 1)
