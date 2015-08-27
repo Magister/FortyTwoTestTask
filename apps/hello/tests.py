@@ -8,10 +8,12 @@ from apps.hello.models import AppUser
 
 
 class TestAppUser(TestCase):
-    def test_model_has_data(self):
+    def test_model_has_one_user(self):
         """Tests that model for storing user data exists and
-        and has initial data loaded from fixture"""
+        and has initial data loaded from fixture
+        There should be exactly one user with pk=1"""
         self.assertEqual(AppUser.objects.count(), 1)
+        self.assertEqual(AppUser.objects.first().pk, 1)
 
 
 class TestMainView(TestCase):
