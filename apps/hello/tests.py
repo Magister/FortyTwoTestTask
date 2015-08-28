@@ -5,6 +5,7 @@ from django.test import TestCase, Client
 # Create your tests here.
 from django.utils.html import escape
 from apps.hello.models import AppUser, RequestLog
+from apps.hello.views import REQUESTLOG_NUM_REQUESTS
 
 
 class TestAppUser(TestCase):
@@ -76,3 +77,35 @@ class TestRequestLog(TestCase):
         stored_request = RequestLog.objects.last()
         self.assertEqual(stored_request.method, 'POST')
         self.assertEqual(stored_request.path, '/blah')
+
+    def test_page_has_data(self):
+        """Tests that requestlog page has all data"""
+        # make some requests to fill db
+        self.c.get(reverse('index'))
+        self.c.get('/blah')
+        self.c.put('/some_put/here')
+        self.c.post('/and_some_post')
+        self.c.get('/some/get?with&params')
+        response = self.c.get(reverse('requestlog'))
+        self.assertEqual(response.status_code, 200)
+        requests = RequestLog.objects.all()
+        for request in requests:
+            self.assertContains(response, escape(request.path))
+            self.assertContains(response,
+                                defaultfilters.date(request.date))
+            self.assertContains(response, escape(request.method))
+
+    def test_using_correct_template(self):
+        """Tests that we used a correct template"""
+        response = self.c.get(reverse('requestlog'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'hello/requestlog.html')
+
+    def test_context_has_data(self):
+        """Tests that request log is rendered correctly"""
+        response = self.c.get(reverse('requestlog'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.context['requests'])
+        self.assertEqual(
+            len(response.context['requests']),
+            min(RequestLog.objects.count(), REQUESTLOG_NUM_REQUESTS))
