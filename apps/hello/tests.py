@@ -112,6 +112,7 @@ class TestRequestLog(TestCase):
         self.assertEqual(
             len(response.context['requests']),
             min(RequestLog.objects.count(), REQUESTLOG_NUM_REQUESTS))
+        self.assertIsNotNone(response.context['last_update'])
 
     def test_context_has_correct_requests(self):
         """Tests that context has last 10 requests"""
@@ -144,6 +145,7 @@ class TestRequestLog(TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertEqual(len(data['requests']), 1)
+        self.assertIsNotNone(data['last_update'])
 
     def test_async_update_filtering(self):
         """Tests that we can filter async requests by date"""

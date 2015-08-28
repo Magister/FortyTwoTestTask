@@ -2,6 +2,7 @@ import json
 import logging
 from django.http.response import HttpResponse
 from django.shortcuts import render
+from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from apps.hello.models import AppUser, RequestLog
 
@@ -34,15 +35,16 @@ def requestlog(request):
     else:
         requests = RequestLog.objects.order_by('-date').filter(
             date__gt=date_from)[:REQUESTLOG_NUM_REQUESTS]
-    context = {'requests': requests}
+    context = {'requests': requests, 'last_update': timezone.now().isoformat()}
     logger.debug('requestlog')
     if request.is_ajax():
-        json_data = {"requests": []}
-        for req in requests:
+        json_data = {'last_update': context['last_update'],
+                     'requests': []}
+        for req in context['requests']:
             json_data['requests'] += [{
-                "date": req.date.strftime('%Y-%m-%d %H:%M:%S'),
-                "method": req.method,
-                "path": req.path
+                'date': req.date.strftime('%Y-%m-%d %H:%M:%S'),
+                'method': req.method,
+                'path': req.path
             }]
         return HttpResponse(
             json.dumps(json_data),
