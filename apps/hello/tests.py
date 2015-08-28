@@ -1,9 +1,11 @@
+import json
 from django.core.urlresolvers import reverse
 from django.template import defaultfilters
 from django.test import TestCase, Client
 
 # Create your tests here.
 from django.utils.html import escape
+import time
 from apps.hello.models import AppUser, RequestLog
 from apps.hello.views import REQUESTLOG_NUM_REQUESTS
 
@@ -124,3 +126,41 @@ class TestRequestLog(TestCase):
                          REQUESTLOG_NUM_REQUESTS)
         for request in requests:
             self.assertIn(request, requests)
+
+    def test_async_requests_not_stored(self):
+        """Tests that async update requests are not stored
+        in the database"""
+        self.c.get(reverse('requestlog'),
+                   HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(RequestLog.objects.count(), 0)
+
+    def test_async_update_interface(self):
+        """Tests that backend can respond with JSON when requested"""
+        response = self.c.get(reverse('requestlog'),
+                              HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(len(data['requests']), 1)
+
+    def test_async_update_filtering(self):
+        """Tests that we can filter async requests by date"""
+        # make two requests with some delay
+        self.c.get(reverse('index'))
+        time.sleep(0.5)
+        self.c.get(reverse('requestlog'))
+        # ensure we have two items if filter is not requested
+        response = self.c.get(reverse('requestlog'),
+                              HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        data = json.loads(response.content)
+        self.assertEqual(len(data['requests']), 2)
+        # now use filter to get only second request
+        from_date = RequestLog.objects.first().date.isoformat()
+        response = self.c.get(reverse('requestlog'),
+                              {"from": from_date},
+                              HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        data = json.loads(response.content)
+        self.assertEqual(len(data['requests']), 1)
+        self.assertEqual(data['requests'][0]['path'], reverse('requestlog'))
+        second_request_date = RequestLog.objects.order_by("-date").\
+            first().date.strftime("%Y-%m-%d %H:%M:%S")
+        self.assertEqual(data['requests'][0]['date'], second_request_date)
