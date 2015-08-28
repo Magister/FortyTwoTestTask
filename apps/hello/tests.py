@@ -136,6 +136,9 @@ class TestRequestLog(TestCase):
 
     def test_async_update_interface(self):
         """Tests that backend can respond with JSON when requested"""
+        # first make a request to have some data
+        self.c.get('/blah')
+        # now make ajax call
         response = self.c.get(reverse('requestlog'),
                               HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response.status_code, 200)
