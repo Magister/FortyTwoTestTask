@@ -13,7 +13,9 @@ class TestAppUser(TestCase):
         and has initial data loaded from fixture
         There should be exactly one user with pk=INITIAL_APP_USER_PK"""
         self.assertEqual(AppUser.objects.count(), 1)
-        self.assertEqual(AppUser.objects.first().pk, AppUser.INITIAL_APP_USER_PK)
+        self.assertEqual(
+            AppUser.objects.first().pk,
+            AppUser.INITIAL_APP_USER_PK)
 
 
 class TestMainView(TestCase):
@@ -50,4 +52,6 @@ class TestMainView(TestCase):
         response = self.c.get(reverse('index'))
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.context['appuser'])
-        self.assertEqual(response.context['appuser'].pk, AppUser.INITIAL_APP_USER_PK)
+        self.assertEqual(
+            response.context['appuser'].pk,
+            AppUser.INITIAL_APP_USER_PK)
