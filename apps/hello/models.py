@@ -1,6 +1,7 @@
 from django.db import models
 
-# Create your models here.
+# Primary key of AppUser loaded from fixture
+INITIAL_APP_USER_PK = 1
 
 
 class AppUser(models.Model):
