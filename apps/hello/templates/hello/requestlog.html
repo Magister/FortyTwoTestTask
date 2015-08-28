@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 {% load staticfiles %}
+{% load tz %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'libs/bootstrap/dist/css/bootstrap.min.css' %}"/>
     <link rel="stylesheet" href="{% static 'hello/css/hello.css' %}"/>
+    <script src="{% static 'libs/jquery/dist/jquery.min.js' %}"></script>
+    <script src="{% static 'hello/js/requestlog.js' %}"></script>
 {% endblock %}
 
 {% block title %}
@@ -13,9 +16,13 @@ Request log -
 {% block content %}
     <div class="container">
         <div class="page-header">
-            <h1>42 Coffee Cups Test Assignment</h1>
+            <h1>Request log <small>Last updated: <span id="last_update">{{ last_update|localtime|date:"Y-m-d H:i:s" }}</span></small></h1>
         </div>
-        <table class="table table-bordered table-condensed table-striped">
+        <script>
+            window.last_update = new Date("{{ last_update|date:"c" }}");
+            window.requests_count = {{ requests_count }};
+        </script>
+        <table id="requests" class="table table-bordered table-condensed table-striped">
             <thead>
                 <tr>
                     <th>Datetime</th>
@@ -23,12 +30,12 @@ Request log -
                     <th>Path</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="requests-body">
                 {% for request in requests %}
-                    <tr>
-                        <td>{{ request.date|date:"DATETIME_FORMAT" }}</td>
-                        <td>{{ request.method }}</td>
-                        <td>{{ request.path }}</td>
+                    <tr class="request-row">
+                        <td class="request-date">{{ request.date|date:"Y-m-d H:i:s" }}</td>
+                        <td class="request-method">{{ request.method }}</td>
+                        <td class="request-path">{{ request.path }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

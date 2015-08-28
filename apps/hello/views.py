@@ -35,11 +35,18 @@ def requestlog(request):
     else:
         requests = RequestLog.objects.order_by('-date').filter(
             date__gt=date_from)[:REQUESTLOG_NUM_REQUESTS]
-    context = {'requests': requests, 'last_update': timezone.now().isoformat()}
+    context = {
+        'requests': requests,
+        'last_update': timezone.now(),
+        'requests_count': REQUESTLOG_NUM_REQUESTS
+    }
     logger.debug('requestlog')
     if request.is_ajax():
-        json_data = {'last_update': context['last_update'],
-                     'requests': []}
+        json_data = {
+            'last_update': context['last_update'].isoformat(),
+            'requests': [],
+            'requests_count': context['requests_count']
+        }
         for req in context['requests']:
             json_data['requests'] += [{
                 'date': req.date.strftime('%Y-%m-%d %H:%M:%S'),
