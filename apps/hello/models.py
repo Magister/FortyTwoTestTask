@@ -1,10 +1,10 @@
 from django.db import models
 
 # Primary key of AppUser loaded from fixture
-INITIAL_APP_USER_PK = 1
 
 
 class AppUser(models.Model):
+    INITIAL_APP_USER_PK = 1
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     date_of_birth = models.DateField()
