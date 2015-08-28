@@ -4,7 +4,7 @@ from django.test import TestCase, Client
 
 # Create your tests here.
 from django.utils.html import escape
-from apps.hello.models import AppUser
+from apps.hello.models import AppUser, RequestLog
 
 
 class TestAppUser(TestCase):
@@ -55,3 +55,24 @@ class TestMainView(TestCase):
         self.assertEqual(
             response.context['appuser'].pk,
             AppUser.INITIAL_APP_USER_PK)
+
+
+class TestRequestLog(TestCase):
+    c = Client()
+
+    def test_requests_storing(self):
+        """Tests that requests are stored in db"""
+        # there should be no requests at the beginning
+        self.assertEqual(RequestLog.objects.count(), 0)
+        # make a request and check it's stored
+        self.c.get(reverse('index'))
+        self.assertEqual(RequestLog.objects.count(), 1)
+        stored_request = RequestLog.objects.last()
+        self.assertEqual(stored_request.method, 'GET')
+        self.assertEqual(stored_request.path, '/')
+        # make POST request
+        self.c.post('/blah')
+        self.assertEqual(RequestLog.objects.count(), 2)
+        stored_request = RequestLog.objects.last()
+        self.assertEqual(stored_request.method, 'POST')
+        self.assertEqual(stored_request.path, '/blah')
