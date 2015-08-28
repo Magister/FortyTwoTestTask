@@ -12,6 +12,3 @@ class AppUser(models.Model):
     jabber = models.EmailField()
     skype = models.CharField(max_length=255)
     other_contacts = models.TextField()
-
-    def delete(self, *args, **kwargs):
-        pass
