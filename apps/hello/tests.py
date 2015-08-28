@@ -91,8 +91,9 @@ class TestRequestLog(TestCase):
         requests = RequestLog.objects.all()
         for request in requests:
             self.assertContains(response, escape(request.path))
-            self.assertContains(response,
-                                defaultfilters.date(request.date))
+            self.assertContains(
+                response,
+                defaultfilters.date(request.date, "DATETIME_FORMAT"))
             self.assertContains(response, escape(request.method))
 
     def test_using_correct_template(self):
@@ -109,3 +110,17 @@ class TestRequestLog(TestCase):
         self.assertEqual(
             len(response.context['requests']),
             min(RequestLog.objects.count(), REQUESTLOG_NUM_REQUESTS))
+
+    def test_context_has_correct_requests(self):
+        """Tests that context has last 10 requests"""
+        # first make a lot of requests
+        for i in xrange(1, REQUESTLOG_NUM_REQUESTS * 2):
+            self.c.get('/request/' + str(i))
+        # now check context has correct number of requests
+        response = self.c.get(reverse('requestlog'))
+        requests = \
+            RequestLog.objects.order_by('-date')[:REQUESTLOG_NUM_REQUESTS]
+        self.assertEqual(len(response.context['requests']),
+                         REQUESTLOG_NUM_REQUESTS)
+        for request in requests:
+            self.assertIn(request, requests)

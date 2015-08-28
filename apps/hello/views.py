@@ -17,4 +17,7 @@ def index(request):
 
 
 def requestlog(request):
-    return None
+    requests = RequestLog.objects.order_by('-date')[:REQUESTLOG_NUM_REQUESTS]
+    context = {'requests': requests}
+    logger.debug('requestlog')
+    return render(request, 'hello/requestlog.html', context)
