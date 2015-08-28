@@ -1,6 +1,7 @@
 from django.db import models
 
-# Create your models here.
+# Primary key of AppUser loaded from fixture
+INITIAL_APP_USER_PK = 1
 
 
 class AppUser(models.Model):
@@ -12,6 +13,3 @@ class AppUser(models.Model):
     jabber = models.EmailField()
     skype = models.CharField(max_length=255)
     other_contacts = models.TextField()
-
-    def delete(self, *args, **kwargs):
-        pass

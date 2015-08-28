@@ -11,9 +11,9 @@ class TestAppUser(TestCase):
     def test_model_has_one_user(self):
         """Tests that model for storing user data exists and
         and has initial data loaded from fixture
-        There should be exactly one user with pk=1"""
+        There should be exactly one user with pk=INITIAL_APP_USER_PK"""
         self.assertEqual(AppUser.objects.count(), 1)
-        self.assertEqual(AppUser.objects.first().pk, 1)
+        self.assertEqual(AppUser.objects.first().pk, AppUser.INITIAL_APP_USER_PK)
 
 
 class TestMainView(TestCase):
@@ -21,7 +21,7 @@ class TestMainView(TestCase):
 
     def test_page_has_data(self):
         """Tests that main page has data from db"""
-        user = AppUser.objects.get(pk=1)
+        user = AppUser.objects.get(pk=AppUser.INITIAL_APP_USER_PK)
         response = self.c.get(reverse('index'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, escape(user.first_name))
@@ -50,4 +50,4 @@ class TestMainView(TestCase):
         response = self.c.get(reverse('index'))
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.context['appuser'])
-        self.assertEqual(response.context['appuser'].pk, 1)
+        self.assertEqual(response.context['appuser'].pk, AppUser.INITIAL_APP_USER_PK)
