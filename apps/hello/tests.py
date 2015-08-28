@@ -95,7 +95,7 @@ class TestRequestLog(TestCase):
             self.assertContains(response, escape(request.path))
             self.assertContains(
                 response,
-                defaultfilters.date(request.date, "DATETIME_FORMAT"))
+                defaultfilters.date(request.date, "Y-m-d H:i:s"))
             self.assertContains(response, escape(request.method))
 
     def test_using_correct_template(self):
@@ -113,6 +113,8 @@ class TestRequestLog(TestCase):
             len(response.context['requests']),
             min(RequestLog.objects.count(), REQUESTLOG_NUM_REQUESTS))
         self.assertIsNotNone(response.context['last_update'])
+        self.assertEqual(response.context['requests_count'],
+                         REQUESTLOG_NUM_REQUESTS)
 
     def test_context_has_correct_requests(self):
         """Tests that context has last 10 requests"""
@@ -146,6 +148,7 @@ class TestRequestLog(TestCase):
         data = json.loads(response.content)
         self.assertEqual(len(data['requests']), 1)
         self.assertIsNotNone(data['last_update'])
+        self.assertEqual(data['requests_count'], REQUESTLOG_NUM_REQUESTS)
 
     def test_async_update_filtering(self):
         """Tests that we can filter async requests by date"""
