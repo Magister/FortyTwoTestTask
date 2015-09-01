@@ -58,3 +58,7 @@ def requestlog(request):
             content_type="application/json")
     else:
         return render(request, 'hello/requestlog.html', context)
+
+
+def edit(request):
+    return None
