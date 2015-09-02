@@ -5,6 +5,7 @@ from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from apps.hello import tools
 from apps.hello.forms import EditForm
 from apps.hello.models import AppUser, RequestLog
 
@@ -65,10 +66,17 @@ def requestlog(request):
 def edit(request):
     appuser = AppUser.objects.get(pk=AppUser.INITIAL_APP_USER_PK)
     if request.method == 'POST':
-        form = EditForm(request.POST, instance=appuser)
+        if request.is_ajax():
+            data = json.loads(request.body)
+        else:
+            data = request.POST
+        form = EditForm(data, instance=appuser)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('index'))
+            if not request.is_ajax():
+                return HttpResponseRedirect(reverse('index'))
+        response = tools.convert_to_json(form)
+        return HttpResponse(response, content_type='application/json')
     else:
         form = EditForm(instance=appuser)
     return render(request, 'hello/edit.html', {'form': form})

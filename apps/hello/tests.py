@@ -235,7 +235,6 @@ class TestDatePickerWidget(TestCase):
         """Tests that widget contains required media"""
         w = DatePickerWidget()
         w_media = str(w.media)
-        self.assertGreater(w_media.find('jquery.min.js'), -1)
         self.assertGreater(w_media.find('jquery-ui.min.js'), -1)
         self.assertGreater(w_media.find('datepicker-widget.js'), -1)
         self.assertGreater(w_media.find('jquery-ui.min.css'), -1)

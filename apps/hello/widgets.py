@@ -5,7 +5,6 @@ class DatePickerWidget(widgets.DateInput):
 
     class Media:
         js = (
-            'libs/jquery/dist/jquery.min.js',
             'libs/jquery-ui/jquery-ui.min.js',
             'hello/js/datepicker-widget.js',
         )
