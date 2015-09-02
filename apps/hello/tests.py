@@ -9,6 +9,7 @@ from apps.hello.forms import EditForm
 from apps.hello.models import AppUser, RequestLog
 from apps.hello.views import REQUESTLOG_NUM_REQUESTS
 from apps.hello.widgets import DatePickerWidget, ImagePickerWidget
+from fortytwo_test_task import settings
 
 
 class TestAppUser(TestCase):
@@ -265,6 +266,19 @@ class TestImagePickerWidget(TestCase):
         self.assertGreater(w_media.find('imagepicker-widget.js'), -1)
 
     def test_widget_class(self):
-        """Tests that widget's input has date-picker class"""
+        """Tests that widget's input has image-picker class"""
         w = ImagePickerWidget()
         self.assertGreater(w.attrs['class'].find('image-picker'), -1)
+
+    def test_widget_rendering(self):
+        """Tests that widget produces correct html"""
+        w = ImagePickerWidget()
+        self.assertEqual(
+            w.render('photo', 'image/url.jpg', {'id': 'id_photo'}),
+            '<p><img alt="Photo not selected" class="image-preview"'
+            ' id="img_id_photo"'
+            ' src="' + settings.MEDIA_URL +
+            'image/url.jpg" />'
+            '</p><input class="image-picker" id="id_photo"'
+            ' name="photo" type="file" />'
+        )
