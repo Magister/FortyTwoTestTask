@@ -1,5 +1,6 @@
 import json
 import logging
+from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -63,6 +64,7 @@ def requestlog(request):
         return render(request, 'hello/requestlog.html', context)
 
 
+@login_required
 def edit(request):
     appuser = AppUser.objects.get(pk=AppUser.INITIAL_APP_USER_PK)
     if request.method == 'POST':
