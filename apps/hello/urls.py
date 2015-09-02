@@ -5,6 +5,7 @@ from apps.hello import views
 urlpatterns = patterns(
     '',
     url(r'^$', views.index, name='index'),
+    url(r'^edit$', views.edit, name='edit'),
     url(r'^requestlog$', views.requestlog, name='requestlog')
 )
 

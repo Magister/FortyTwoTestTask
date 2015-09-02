@@ -5,6 +5,9 @@ from django.db import models
 
 class AppUser(models.Model):
     INITIAL_APP_USER_PK = 1
+    PHOTO_WIDTH = 200
+    PHOTO_HEIGHT = 200
+
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     date_of_birth = models.DateField()
@@ -13,6 +16,7 @@ class AppUser(models.Model):
     jabber = models.EmailField()
     skype = models.CharField(max_length=255)
     other_contacts = models.TextField()
+    photo = models.ImageField(upload_to='appuser', blank=True, null=True)
 
 
 class RequestLog(models.Model):

@@ -1,13 +1,15 @@
 import json
+import time
+from datetime import date
 from django.core.urlresolvers import reverse
 from django.template import defaultfilters
 from django.test import TestCase, Client
-
-# Create your tests here.
 from django.utils.html import escape
-import time
+from apps.hello.forms import EditForm
 from apps.hello.models import AppUser, RequestLog
 from apps.hello.views import REQUESTLOG_NUM_REQUESTS
+from apps.hello.widgets import DatePickerWidget, ImagePickerWidget
+from fortytwo_test_task import settings
 
 
 class TestAppUser(TestCase):
@@ -169,6 +171,114 @@ class TestRequestLog(TestCase):
         data = json.loads(response.content)
         self.assertEqual(len(data['requests']), 1)
         self.assertEqual(data['requests'][0]['path'], reverse('requestlog'))
-        second_request_date = RequestLog.objects.order_by("-date").\
+        second_request_date = RequestLog.objects.order_by("-date"). \
             first().date.strftime("%Y-%m-%d %H:%M:%S")
         self.assertEqual(data['requests'][0]['date'], second_request_date)
+
+
+class TestEditMainPage(TestCase):
+    fixtures = ['users.json']
+
+    c = Client()
+
+    def setUp(self):
+        super(TestEditMainPage, self).setUp()
+        self.assertTrue(self.c.login(username='admin', password='admin'))
+
+    def test_using_correct_template(self):
+        """Tests that we used a correct template"""
+        response = self.c.get(reverse('edit'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'hello/edit.html')
+
+    def test_context_has_data(self):
+        """Tests that context has form with correct object"""
+        response = self.c.get(reverse('edit'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.context['form'])
+        self.assertIsInstance(response.context['form'], EditForm)
+        self.assertEqual(
+            response.context['form'].instance.pk,
+            AppUser.INITIAL_APP_USER_PK)
+
+    def test_can_edit_data(self):
+        """Tests that data can be edited"""
+        appuser = AppUser()
+        appuser.first_name = 'Test first name'
+        appuser.last_name = 'Test last name'
+        appuser.bio = 'Test bio of user'
+        appuser.date_of_birth = date.today()
+        appuser.email = 'some.email@example.com'
+        appuser.skype = 'some.skype_name'
+        appuser.jabber = 'some.jabber@jabberserver.org'
+        appuser.other_contacts = 'Test some other contact data'
+        response = self.c.post(
+            reverse('edit'),
+            {
+                'first_name': appuser.first_name,
+                'last_name': appuser.last_name,
+                'bio': appuser.bio,
+                'date_of_birth': appuser.date_of_birth.isoformat(),
+                'email': appuser.email,
+                'skype': appuser.skype,
+                'jabber': appuser.jabber,
+                'other_contacts': appuser.other_contacts,
+            })
+        self.assertRedirects(response, reverse('index'))
+        # now check that data actually changed in db
+        db_user = AppUser.objects.get(pk=AppUser.INITIAL_APP_USER_PK)
+        self.assertEqual(appuser.first_name, db_user.first_name)
+        self.assertEqual(appuser.last_name, db_user.last_name)
+        self.assertEqual(appuser.bio, db_user.bio)
+        self.assertEqual(appuser.date_of_birth, db_user.date_of_birth)
+        self.assertEqual(appuser.email, db_user.email)
+        self.assertEqual(appuser.skype, db_user.skype)
+        self.assertEqual(appuser.jabber, db_user.jabber)
+        self.assertEqual(appuser.other_contacts, db_user.other_contacts)
+
+    def test_auth_required(self):
+        """Tests that auth is required to edit data"""
+        self.c.logout()
+        response = self.c.get(reverse('edit'))
+        self.assertEqual(response.status_code, 302)
+
+
+class TestDatePickerWidget(TestCase):
+    def test_widget_media(self):
+        """Tests that widget contains required media"""
+        w = DatePickerWidget()
+        w_media = str(w.media)
+        self.assertGreater(w_media.find('jquery-ui.min.js'), -1)
+        self.assertGreater(w_media.find('datepicker-widget.js'), -1)
+        self.assertGreater(w_media.find('jquery-ui.min.css'), -1)
+
+    def test_widget_class(self):
+        """Tests that widget's input has date-picker class"""
+        w = DatePickerWidget()
+        self.assertGreater(w.attrs['class'].find('date-picker'), -1)
+
+
+class TestImagePickerWidget(TestCase):
+    def test_widget_media(self):
+        """Tests that widget contains required media"""
+        w = ImagePickerWidget()
+        w_media = str(w.media)
+        self.assertGreater(w_media.find('imagepicker-widget.js'), -1)
+
+    def test_widget_class(self):
+        """Tests that widget's input has image-picker class"""
+        w = ImagePickerWidget()
+        self.assertGreater(w.attrs['class'].find('image-picker'), -1)
+
+    def test_widget_rendering(self):
+        """Tests that widget produces correct html"""
+        w = ImagePickerWidget()
+        self.assertEqual(
+            w.render('photo', 'image/url.jpg', {'id': 'id_photo'}),
+            '<p><img alt="Photo not selected" class="image-preview"'
+            ' id="img_id_photo"'
+            ' src="' + settings.MEDIA_URL +
+            'image/url.jpg" />'
+            '</p><input class="image-picker" id="id_photo"'
+            ' name="photo" type="file" />'
+        )

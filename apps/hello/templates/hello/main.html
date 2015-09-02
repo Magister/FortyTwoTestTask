@@ -11,6 +11,9 @@
         <div class="page-header">
             <h1>42 Coffee Cups Test Assignment</h1>
         </div>
+        <div class="pull-right">
+            <a href="{% url 'edit' %}">Edit</a>
+        </div>
         <div class="appuser row">
             <div class="col-sm-6">
                 <div class="element">
@@ -23,8 +26,12 @@
                     <label>{{ appuser.date_of_birth|date }}</label>
                 </div>
                 <div class="element">
-                    <label>Bio:</label>
-                    <p>{{ appuser.bio|linebreaksbr }}</p>
+                    <label>Photo:</label>
+                    {% if appuser.photo %}
+                       <p>
+                            <img src="{{ appuser.photo.url }}">
+                        </p>
+                    {% endif %}
                 </div>
             </div>
             <div class="col-sm-6">
@@ -44,6 +51,10 @@
                 <div class="element">
                     <label>Other contacts:</label>
                     <p>{{ appuser.other_contacts|linebreaksbr }}</p>
+                </div>
+                <div class="element">
+                    <label>Bio:</label>
+                    <p>{{ appuser.bio|linebreaksbr }}</p>
                 </div>
             </div>
         </div>

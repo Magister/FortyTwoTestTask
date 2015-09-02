@@ -1,9 +1,14 @@
 import json
 import logging
-from django.http.response import HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.urlresolvers import reverse
+from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from apps.hello import tools
+from apps.hello.forms import EditForm
 from apps.hello.models import AppUser, RequestLog
 
 # Instantiate logger
@@ -58,3 +63,36 @@ def requestlog(request):
             content_type="application/json")
     else:
         return render(request, 'hello/requestlog.html', context)
+
+
+@login_required
+def edit(request):
+    appuser = AppUser.objects.get(pk=AppUser.INITIAL_APP_USER_PK)
+    if request.method == 'POST':
+        if request.is_ajax():
+            data = json.loads(request.body)
+            if 'photo' in data:
+                (content, content_type) = tools.decode_data_uri(data['photo'])
+                file_dict = {
+                    'content': content,
+                    'filename': data.get('photo_filename'),
+                    'content-type': content_type
+                }
+                img_file = SimpleUploadedFile.from_dict(file_dict)
+                request.FILES['photo'] = img_file
+        else:
+            data = request.POST
+        form = EditForm(data, request.FILES, instance=appuser)
+        if form.is_valid():
+            img_data = form.cleaned_data.get('photo')
+            if img_data is not None:
+                tools.resize_photo(img_data, AppUser.PHOTO_WIDTH,
+                                   AppUser.PHOTO_HEIGHT)
+            form.save()
+            if not request.is_ajax():
+                return HttpResponseRedirect(reverse('index'))
+        response = tools.convert_to_json(form)
+        return HttpResponse(response, content_type='application/json')
+    else:
+        form = EditForm(instance=appuser)
+    return render(request, 'hello/edit.html', {'form': form})
