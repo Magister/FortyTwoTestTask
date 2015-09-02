@@ -1,11 +1,11 @@
 import json
+import time
+from datetime import date
 from django.core.urlresolvers import reverse
 from django.template import defaultfilters
 from django.test import TestCase, Client
-
-# Create your tests here.
 from django.utils.html import escape
-import time
+from apps.hello.forms import EditForm
 from apps.hello.models import AppUser, RequestLog
 from apps.hello.views import REQUESTLOG_NUM_REQUESTS
 
@@ -172,3 +172,58 @@ class TestRequestLog(TestCase):
         second_request_date = RequestLog.objects.order_by("-date").\
             first().date.strftime("%Y-%m-%d %H:%M:%S")
         self.assertEqual(data['requests'][0]['date'], second_request_date)
+
+
+class TestEditMainPage(TestCase):
+    c = Client()
+
+    def test_using_correct_template(self):
+        """Tests that we used a correct template"""
+        response = self.c.get(reverse('edit'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'hello/edit.html')
+
+    def test_context_has_data(self):
+        """Tests that context has form with correct object"""
+        response = self.c.get(reverse('edit'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.context['form'])
+        self.assertIsInstance(response.context['form'], EditForm)
+        self.assertEqual(
+            response.context['form'].instance.pk,
+            AppUser.INITIAL_APP_USER_PK)
+
+    def test_can_edit_data(self):
+        """Tests that data can be edited"""
+        appuser = AppUser()
+        appuser.first_name = 'Test first name'
+        appuser.last_name = 'Test last name'
+        appuser.bio = 'Test bio of user'
+        appuser.date_of_birth = date.today()
+        appuser.email = 'some.email@example.com'
+        appuser.skype = 'some.skype_name'
+        appuser.jabber = 'some.jabber@jabberserver.org'
+        appuser.other_contacts = 'Test some other contact data'
+        response = self.c.post(
+            reverse('edit'),
+            {
+                'first_name': appuser.first_name,
+                'last_name': appuser.last_name,
+                'bio': appuser.bio,
+                'date_of_birth': appuser.date_of_birth.isoformat(),
+                'email': appuser.email,
+                'skype': appuser.skype,
+                'jabber': appuser.jabber,
+                'other_contacts': appuser.other_contacts,
+            })
+        self.assertRedirects(response, reverse('index'))
+        # now check that data actually changed in db
+        db_user = AppUser.objects.get(pk=AppUser.INITIAL_APP_USER_PK)
+        self.assertEqual(appuser.first_name, db_user.first_name)
+        self.assertEqual(appuser.last_name, db_user.last_name)
+        self.assertEqual(appuser.bio, db_user.bio)
+        self.assertEqual(appuser.date_of_birth, db_user.date_of_birth)
+        self.assertEqual(appuser.email, db_user.email)
+        self.assertEqual(appuser.skype, db_user.skype)
+        self.assertEqual(appuser.jabber, db_user.jabber)
+        self.assertEqual(appuser.other_contacts, db_user.other_contacts)
