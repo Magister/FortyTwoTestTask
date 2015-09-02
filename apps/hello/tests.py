@@ -170,13 +170,19 @@ class TestRequestLog(TestCase):
         data = json.loads(response.content)
         self.assertEqual(len(data['requests']), 1)
         self.assertEqual(data['requests'][0]['path'], reverse('requestlog'))
-        second_request_date = RequestLog.objects.order_by("-date").\
+        second_request_date = RequestLog.objects.order_by("-date"). \
             first().date.strftime("%Y-%m-%d %H:%M:%S")
         self.assertEqual(data['requests'][0]['date'], second_request_date)
 
 
 class TestEditMainPage(TestCase):
+    fixtures = ['users.json']
+
     c = Client()
+
+    def setUp(self):
+        super(TestEditMainPage, self).setUp()
+        self.assertTrue(self.c.login(username='admin', password='admin'))
 
     def test_using_correct_template(self):
         """Tests that we used a correct template"""
@@ -228,6 +234,12 @@ class TestEditMainPage(TestCase):
         self.assertEqual(appuser.skype, db_user.skype)
         self.assertEqual(appuser.jabber, db_user.jabber)
         self.assertEqual(appuser.other_contacts, db_user.other_contacts)
+
+    def test_auth_required(self):
+        """Tests that auth is required to edit data"""
+        self.c.logout()
+        response = self.c.get(reverse('edit'))
+        self.assertEqual(response.status_code, 302)
 
 
 class TestDatePickerWidget(TestCase):
