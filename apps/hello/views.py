@@ -70,10 +70,16 @@ def edit(request):
     if request.method == 'POST':
         if request.is_ajax():
             data = json.loads(request.body)
+            files = None
         else:
             data = request.POST
-        form = EditForm(data, instance=appuser)
+            files = request.FILES
+        form = EditForm(data, files, instance=appuser)
         if form.is_valid():
+            img_data = form.cleaned_data.get('photo')
+            if img_data is not None:
+                tools.resize_photo(img_data, AppUser.PHOTO_WIDTH,
+                                   AppUser.PHOTO_HEIGHT)
             form.save()
             if not request.is_ajax():
                 return HttpResponseRedirect(reverse('index'))

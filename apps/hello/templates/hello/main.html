@@ -26,8 +26,10 @@
                     <label>{{ appuser.date_of_birth|date }}</label>
                 </div>
                 <div class="element">
-                    <label>Bio:</label>
-                    <p>{{ appuser.bio|linebreaksbr }}</p>
+                    <label>Photo:</label>
+                    <p>
+                        <img src="{{ appuser.photo.url }}">
+                    </p>
                 </div>
             </div>
             <div class="col-sm-6">
@@ -47,6 +49,10 @@
                 <div class="element">
                     <label>Other contacts:</label>
                     <p>{{ appuser.other_contacts|linebreaksbr }}</p>
+                </div>
+                <div class="element">
+                    <label>Bio:</label>
+                    <p>{{ appuser.bio|linebreaksbr }}</p>
                 </div>
             </div>
         </div>
