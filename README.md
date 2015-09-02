@@ -11,6 +11,7 @@ Use fortytwo_test_task.settings when deploying with getbarista.com
 * make migrate - runs migrations
 * make test - executes tests
 * make run - runs local development server
+* default user - admin, password - admin
 
 
 ### Recomendations
