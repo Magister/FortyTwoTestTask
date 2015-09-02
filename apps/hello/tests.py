@@ -8,6 +8,7 @@ from django.utils.html import escape
 from apps.hello.forms import EditForm
 from apps.hello.models import AppUser, RequestLog
 from apps.hello.views import REQUESTLOG_NUM_REQUESTS
+from apps.hello.widgets import DatePickerWidget
 
 
 class TestAppUser(TestCase):
@@ -227,3 +228,19 @@ class TestEditMainPage(TestCase):
         self.assertEqual(appuser.skype, db_user.skype)
         self.assertEqual(appuser.jabber, db_user.jabber)
         self.assertEqual(appuser.other_contacts, db_user.other_contacts)
+
+
+class TestDatePickerWidget(TestCase):
+    def test_widget_media(self):
+        """Tests that widget contains required media"""
+        w = DatePickerWidget()
+        w_media = str(w.media)
+        self.assertGreater(w_media.find('jquery.min.js'), -1)
+        self.assertGreater(w_media.find('jquery-ui.min.js'), -1)
+        self.assertGreater(w_media.find('datepicker-widget.js'), -1)
+        self.assertGreater(w_media.find('jquery-ui.min.css'), -1)
+
+    def test_widget_class(self):
+        """Tests that widget's input has date-picker class"""
+        w = DatePickerWidget()
+        self.assertGreater(w.attrs['class'].find('date-picker'), -1)
