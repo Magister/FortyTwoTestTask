@@ -1,9 +1,11 @@
 import json
 import logging
-from django.http.response import HttpResponse
+from django.core.urlresolvers import reverse
+from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from apps.hello.forms import EditForm
 from apps.hello.models import AppUser, RequestLog
 
 # Instantiate logger
@@ -61,4 +63,12 @@ def requestlog(request):
 
 
 def edit(request):
-    return None
+    appuser = AppUser.objects.get(pk=AppUser.INITIAL_APP_USER_PK)
+    if request.method == 'POST':
+        form = EditForm(request.POST, instance=appuser)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('index'))
+    else:
+        form = EditForm(instance=appuser)
+    return render(request, 'hello/edit.html', {'form': form})
