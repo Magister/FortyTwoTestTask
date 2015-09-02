@@ -1,7 +1,9 @@
 #!/bin/sh
 
 echo "Cleaning old static..."
-rm -rf assets/libs
+if [ ! -d assets/libs ]; then
+    rm -rf assets/libs
+fi
 rm -rf static/*
 echo "Installing bower dependencies..."
 make bower-install
