@@ -13,6 +13,8 @@ from fortytwo_test_task import settings
 
 
 class TestAppUser(TestCase):
+    fixtures = ['app_user.json']
+
     def test_model_has_one_user(self):
         """Tests that model for storing user data exists and
         and has initial data loaded from fixture
@@ -24,6 +26,7 @@ class TestAppUser(TestCase):
 
 
 class TestMainView(TestCase):
+    fixtures = ['app_user.json']
     c = Client()
 
     def test_page_has_data(self):
@@ -63,6 +66,7 @@ class TestMainView(TestCase):
 
 
 class TestRequestLog(TestCase):
+    fixtures = ['app_user.json']
     c = Client()
 
     def test_requests_storing(self):
@@ -177,7 +181,7 @@ class TestRequestLog(TestCase):
 
 
 class TestEditMainPage(TestCase):
-    fixtures = ['users.json']
+    fixtures = ['app_user.json', 'users.json']
 
     c = Client()
 
