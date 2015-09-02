@@ -2,7 +2,6 @@ from django.forms import widgets
 from django.forms.util import flatatt
 from django.template.defaultfilters import urlencode
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 from fortytwo_test_task import settings
 
 
