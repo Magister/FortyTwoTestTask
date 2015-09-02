@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from apps.hello.models import AppUser
-from apps.hello.widgets import DatePickerWidget
+from apps.hello.widgets import DatePickerWidget, ImagePickerWidget
 
 
 class EditForm(forms.ModelForm):
@@ -10,6 +10,7 @@ class EditForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'date_of_birth': DatePickerWidget,
+            'photo': ImagePickerWidget,
         }
 
     def __init__(self, *args, **kwargs):

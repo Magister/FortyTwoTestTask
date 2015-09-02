@@ -8,7 +8,7 @@ from django.utils.html import escape
 from apps.hello.forms import EditForm
 from apps.hello.models import AppUser, RequestLog
 from apps.hello.views import REQUESTLOG_NUM_REQUESTS
-from apps.hello.widgets import DatePickerWidget
+from apps.hello.widgets import DatePickerWidget, ImagePickerWidget
 
 
 class TestAppUser(TestCase):
@@ -243,3 +243,16 @@ class TestDatePickerWidget(TestCase):
         """Tests that widget's input has date-picker class"""
         w = DatePickerWidget()
         self.assertGreater(w.attrs['class'].find('date-picker'), -1)
+
+
+class TestImagePickerWidget(TestCase):
+    def test_widget_media(self):
+        """Tests that widget contains required media"""
+        w = ImagePickerWidget()
+        w_media = str(w.media)
+        self.assertGreater(w_media.find('imagepicker-widget.js'), -1)
+
+    def test_widget_class(self):
+        """Tests that widget's input has date-picker class"""
+        w = ImagePickerWidget()
+        self.assertGreater(w.attrs['class'].find('image-picker'), -1)
