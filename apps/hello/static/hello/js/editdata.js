@@ -35,8 +35,21 @@ function submit_form(event) {
     for (var i = 0; i < form_data.length; i++) {
         json_data[form_data[i].name] = form_data[i].value;
     }
-    // and send it
-    post_form($(this), json_data);
+    // add photo
+    var photo = $('#id_photo')[0];
+    if (photo && photo.files && photo.files[0]) {
+        json_data['photo_filename'] = photo.files[0].name;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var data = e.target.result;
+            json_data['photo'] = data;
+            post_form($(this), json_data);
+        };
+        reader.readAsDataURL(photo.files[0]);
+    } else {
+        // no file selected, post immediatly
+        post_form($(this), json_data);
+    }
 }
 
 function csrfSafeMethod(method) {

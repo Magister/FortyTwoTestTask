@@ -1,5 +1,7 @@
+import base64
 import json
 import StringIO
+import urlparse
 from PIL import Image
 
 
@@ -28,3 +30,14 @@ def resize_photo(photo, width, height):
         img_file = StringIO.StringIO()
         img.save(img_file, 'JPEG', quality=90)
         photo.file = img_file
+
+
+def decode_data_uri(data_uri):
+    if not data_uri.startswith('data:'):
+        return None, None
+    parsed = urlparse.urlparse(data_uri)
+    head, data = parsed.path.split(',', 1)
+    bits = head.split(';')
+    mime_type = bits[0] if bits[0] else 'text/plain'
+    content = base64.b64decode(data)
+    return content, mime_type

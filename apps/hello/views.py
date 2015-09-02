@@ -1,6 +1,7 @@
 import json
 import logging
 from django.contrib.auth.decorators import login_required
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -70,11 +71,18 @@ def edit(request):
     if request.method == 'POST':
         if request.is_ajax():
             data = json.loads(request.body)
-            files = None
+            if 'photo' in data:
+                (content, content_type) = tools.decode_data_uri(data['photo'])
+                file_dict = {
+                    'content': content,
+                    'filename': data.get('photo_filename'),
+                    'content-type': content_type
+                }
+                img_file = SimpleUploadedFile.from_dict(file_dict)
+                request.FILES['photo'] = img_file
         else:
             data = request.POST
-            files = request.FILES
-        form = EditForm(data, files, instance=appuser)
+        form = EditForm(data, request.FILES, instance=appuser)
         if form.is_valid():
             img_data = form.cleaned_data.get('photo')
             if img_data is not None:

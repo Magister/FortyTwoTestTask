@@ -27,9 +27,11 @@
                 </div>
                 <div class="element">
                     <label>Photo:</label>
-                    <p>
-                        <img src="{{ appuser.photo.url }}">
-                    </p>
+                    {% if appuser.photo %}
+                       <p>
+                            <img src="{{ appuser.photo.url }}">
+                        </p>
+                    {% endif %}
                 </div>
             </div>
             <div class="col-sm-6">
