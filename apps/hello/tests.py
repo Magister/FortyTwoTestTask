@@ -312,8 +312,7 @@ class TestEditLinkTag(TestCase):
 
 class TestPrintModelsCommand(TestCase):
 
-    def test_with_empty_models(self):
-        """Tests command output with no model items"""
+    def do_test(self):
         stdout = StringIO()
         stderr = StringIO()
         call_command('print_models',
@@ -338,3 +337,10 @@ class TestPrintModelsCommand(TestCase):
                 self.assertEqual(line[:7], 'error: ')
                 break
         self.assertTrue(has_appuser)
+
+    def test_command_output(self):
+        """Tests command output with no model items"""
+        self.do_test()
+        # load fixture, ignore stdout
+        call_command('loaddata', 'app_user.json', stdout=StringIO())
+        self.do_test()
