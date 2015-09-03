@@ -1,6 +1,8 @@
+from StringIO import StringIO
 import json
 import time
 from datetime import date
+from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.template import defaultfilters, Template, Context
 from django.test import TestCase, Client
@@ -306,3 +308,33 @@ class TestEditLinkTag(TestCase):
         """Tests that empty string returned for invalid data"""
         rendered = self.template.render(Context({'obj': None}))
         self.assertEqual(rendered, "")
+
+
+class TestPrintModelsCommand(TestCase):
+
+    def test_with_empty_models(self):
+        """Tests command output with no model items"""
+        stdout = StringIO()
+        stderr = StringIO()
+        call_command('print_models',
+                     interactive=False, stdout=stdout, stderr=stderr)
+        stdout.seek(0)
+        stderr.seek(0)
+        appuser_count = AppUser.objects.count()
+        # check stdout
+        has_appuser = False
+        for line in stdout:
+            if line.find('appuser') > 0:
+                has_appuser = True
+                self.assertIn(str(appuser_count), line)
+                break
+        self.assertTrue(has_appuser)
+        # now check stderr
+        has_appuser = False
+        for line in stderr:
+            if line.find('appuser') > 0:
+                has_appuser = True
+                self.assertIn(str(appuser_count), line)
+                self.assertEqual(line[:7], 'error: ')
+                break
+        self.assertTrue(has_appuser)
