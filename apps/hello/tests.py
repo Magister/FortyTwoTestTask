@@ -2,7 +2,7 @@ import json
 import time
 from datetime import date
 from django.core.urlresolvers import reverse
-from django.template import defaultfilters
+from django.template import defaultfilters, Template, Context
 from django.test import TestCase, Client
 from django.utils.html import escape
 from apps.hello.forms import EditForm
@@ -286,3 +286,23 @@ class TestImagePickerWidget(TestCase):
             '</p><input class="image-picker" id="id_photo"'
             ' name="photo" type="file" />'
         )
+
+
+class TestEditLinkTag(TestCase):
+    fixtures = ['app_user.json']
+    template = Template("{% load edit_link %}{% edit_link obj %}")
+
+    def test_admin_link(self):
+        """Tests that template tag renders link correctly"""
+        app_user = AppUser.objects.get(pk=AppUser.INITIAL_APP_USER_PK)
+        rendered = self.template.render(Context({'obj': app_user}))
+        admin_url = reverse(
+            'admin:%s_%s_change' % (
+                app_user._meta.app_label, app_user._meta.model_name),
+            args=(app_user.pk,))
+        self.assertIn(admin_url, rendered)
+
+    def test_invalid_data(self):
+        """Tests that empty string returned for invalid data"""
+        rendered = self.template.render(Context({'obj': None}))
+        self.assertEqual(rendered, "")
