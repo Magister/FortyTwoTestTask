@@ -28,3 +28,27 @@ class RequestLog(models.Model):
     # set some reasonable field length
     # http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
     path = models.CharField(max_length=2048)
+
+
+class ObjectEvents(models.Model):
+    CREATE = 'C'
+    EDIT = 'E'
+    DELETE = 'D'
+
+    EVENT_CHOICES = (
+        (CREATE, 'Create'),
+        (EDIT, 'Edit'),
+        (DELETE, 'Delete')
+    )
+
+    date = models.DateTimeField(auto_now_add=True)
+    event = models.CharField(max_length=1, choices=EVENT_CHOICES, null=True)
+    object_model = models.CharField(max_length=255)
+    object_repr = models.CharField(max_length=255)
+
+    def __unicode__(self):
+        return u'{0}: event={1} model={2} - {4}'.\
+            format(self.date.isoformat(),
+                   self.get_event_display(),
+                   self.object_model,
+                   self.object_repr)
