@@ -3,6 +3,7 @@ from django.dispatch.dispatcher import receiver
 from south.signals import post_migrate
 from django.contrib.auth.models import User
 from apps.hello.models import AppUser
+import signals  # nopep8 - it's actually used to trigger signals registration
 
 
 @receiver(post_migrate)
