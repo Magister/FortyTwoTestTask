@@ -1,12 +1,14 @@
+from StringIO import StringIO
 import json
 import time
 from datetime import date
+from django.core.management import call_command
 from django.core.urlresolvers import reverse
-from django.template import defaultfilters
+from django.template import defaultfilters, Template, Context
 from django.test import TestCase, Client
 from django.utils.html import escape
 from apps.hello.forms import EditForm
-from apps.hello.models import AppUser, RequestLog
+from apps.hello.models import AppUser, RequestLog, ObjectEvents
 from apps.hello.views import REQUESTLOG_NUM_REQUESTS
 from apps.hello.widgets import DatePickerWidget, ImagePickerWidget
 from fortytwo_test_task import settings
@@ -286,3 +288,96 @@ class TestImagePickerWidget(TestCase):
             '</p><input class="image-picker" id="id_photo"'
             ' name="photo" type="file" />'
         )
+
+
+class TestEditLinkTag(TestCase):
+    fixtures = ['app_user.json']
+    template = Template("{% load edit_link %}{% edit_link obj %}")
+
+    def test_admin_link(self):
+        """Tests that template tag renders link correctly"""
+        app_user = AppUser.objects.get(pk=AppUser.INITIAL_APP_USER_PK)
+        rendered = self.template.render(Context({'obj': app_user}))
+        admin_url = reverse(
+            'admin:%s_%s_change' % (
+                app_user._meta.app_label, app_user._meta.model_name),
+            args=(app_user.pk,))
+        self.assertIn(admin_url, rendered)
+
+    def test_invalid_data(self):
+        """Tests that empty string returned for invalid data"""
+        rendered = self.template.render(Context({'obj': None}))
+        self.assertEqual(rendered, "")
+
+
+class TestPrintModelsCommand(TestCase):
+
+    def do_test(self):
+        stdout = StringIO()
+        stderr = StringIO()
+        call_command('print_models',
+                     interactive=False, stdout=stdout, stderr=stderr)
+        stdout.seek(0)
+        stderr.seek(0)
+        appuser_count = AppUser.objects.count()
+        # check stdout
+        has_appuser = False
+        for line in stdout:
+            if line.find('appuser') > 0:
+                has_appuser = True
+                self.assertIn(str(appuser_count), line)
+                break
+        self.assertTrue(has_appuser)
+        # now check stderr
+        has_appuser = False
+        for line in stderr:
+            if line.find('appuser') > 0:
+                has_appuser = True
+                self.assertIn(str(appuser_count), line)
+                self.assertEqual(line[:7], 'error: ')
+                break
+        self.assertTrue(has_appuser)
+
+    def test_command_output(self):
+        """Tests command output with no model items"""
+        self.do_test()
+        # load fixture, ignore stdout
+        call_command('loaddata', 'app_user.json', stdout=StringIO())
+        self.do_test()
+
+
+class TestObjectEvents(TestCase):
+    def test_object_events(self):
+        """Tests that object events are stored"""
+        events_count = ObjectEvents.objects.count()
+        # create some object
+        appuser = AppUser()
+        appuser.first_name = 'Test first name'
+        appuser.last_name = 'Test last name'
+        appuser.bio = 'Test bio of user'
+        appuser.date_of_birth = date.today()
+        appuser.email = 'some.email@example.com'
+        appuser.skype = 'some.skype_name'
+        appuser.jabber = 'some.jabber@jabberserver.org'
+        appuser.other_contacts = 'Test some other contact data'
+        appuser.save()
+        self.assertEqual(ObjectEvents.objects.count(), events_count + 1)
+        event = ObjectEvents.objects.last()
+        self.assertEqual(event.event, ObjectEvents.CREATE)
+        self.assertEqual(event.object_model, appuser._meta.model_name)
+        self.assertEqual(event.object_repr, str(appuser))
+        # change it
+        appuser.first_name = 'Changed one'
+        appuser.save()
+        self.assertEqual(ObjectEvents.objects.count(), events_count + 2)
+        event = ObjectEvents.objects.last()
+        self.assertEqual(event.event, ObjectEvents.EDIT)
+        self.assertEqual(event.object_model, appuser._meta.model_name)
+        self.assertEqual(event.object_repr, str(appuser))
+        # and delete
+        appuser.delete()
+        self.assertEqual(ObjectEvents.objects.count(), events_count + 3)
+        event = ObjectEvents.objects.last()
+        self.assertEqual(event.event, ObjectEvents.DELETE)
+        self.assertEqual(event.object_model, appuser._meta.model_name)
+        self.assertEqual(event.object_repr, str(appuser))
