@@ -19,9 +19,32 @@ Request log -
             <h1>Request log <small>Last updated: <span id="last_update">{{ last_update|localtime|date:"Y-m-d H:i:s" }}</span></small></h1>
         </div>
         <script>
-            window.last_update = new Date("{{ last_update|date:"c" }}");
+            window.last_id = {{ last_id }};
             window.requests_count = {{ requests_count }};
         </script>
+        <div class="row">
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-1 control-label" for="order">Sort by:</label>
+                    <div class="col-sm-3">
+                        <select class="form-control" id="order" name="order">
+                            {% for field, field_name in available_order.items %}
+                            <option {% if field == order %}selected{% endif %} value="{{ field }}">{{ field_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <label class="col-sm-1 control-label" for="direction">Order:</label>
+                    <div class="col-sm-3">
+                        <select class="form-control" id="direction" name="direction">
+                            {% for field, field_name in available_direction.items %}
+                            <option {% if field == direction %}selected{% endif %} value="{{ field }}">{{ field_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-default">Submit</button>
+                </div>
+            </form>
+        </div>
         <table id="requests" class="table table-bordered table-condensed table-striped">
             <thead>
                 <tr>
@@ -32,7 +55,7 @@ Request log -
             </thead>
             <tbody id="requests-body">
                 {% for request in requests %}
-                    <tr class="request-row">
+                    <tr class="request-row" id="{{ request.id }}">
                         <td class="request-date">{{ request.date|date:"Y-m-d H:i:s" }}</td>
                         <td class="request-method">{{ request.method }}</td>
                         <td class="request-path">{{ request.path }}</td>

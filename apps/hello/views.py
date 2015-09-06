@@ -6,7 +6,6 @@ from django.core.urlresolvers import reverse
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
 from apps.hello import tools
 from apps.hello.forms import EditForm
 from apps.hello.models import AppUser, RequestLog
@@ -25,25 +24,55 @@ def index(request):
     return render(request, 'hello/main.html', context)
 
 
+REQUESTLOG_SORT_FIELDS = {
+    'date': 'Priority',
+    'method': 'Method',
+    'path': 'Path'
+}
+REQUESTLOG_DEFAULT_SORT = 'date'
+REQUESTLOG_SORT_DIRECTIONS = {
+    '': 'Ascending',
+    '-': 'Descending'
+}
+REQUESTLOG_DEFAULT_DIRECTION = '-'
+
+
 def requestlog(request):
-    date_from = None
+    id_from = None
+    order = request.GET.get('order')
+    direction = request.GET.get('direction')
+    if order not in REQUESTLOG_SORT_FIELDS.keys():
+        order = REQUESTLOG_DEFAULT_SORT
+    if direction not in REQUESTLOG_SORT_DIRECTIONS.keys():
+        direction = REQUESTLOG_DEFAULT_DIRECTION
     if request.is_ajax():
-        date_str = request.GET.get('from')
-        if date_str is not None:
+        id_str = request.GET.get('idfrom')
+        if id_str is not None:
             try:
-                date_from = parse_datetime(date_str)
+                id_from = int(id_str)
             except ValueError:
                 pass
-    if date_from is None:
-        requests = RequestLog.objects.order_by(
-            '-date')[:REQUESTLOG_NUM_REQUESTS]
-    else:
-        requests = RequestLog.objects.order_by('-date').filter(
-            date__gt=date_from)[:REQUESTLOG_NUM_REQUESTS]
+    query = RequestLog.objects.order_by(direction + order, '-date')
+    if id_from is not None and order == 'date' and direction == '-':
+        # special case - id grows with date, so we can filter by id here
+        query = query.filter(id__gt=id_from)
+    query = query[:REQUESTLOG_NUM_REQUESTS]
+    last_id = 0
+    requests = []
+    for req in query:
+        last_id = max(last_id, req.id)
+    if id_from is None or last_id > id_from:
+        # first page load or something changed
+        requests = query
     context = {
         'requests': requests,
         'last_update': timezone.now(),
-        'requests_count': REQUESTLOG_NUM_REQUESTS
+        'requests_count': REQUESTLOG_NUM_REQUESTS,
+        'direction': direction,
+        'order': order,
+        'available_order': REQUESTLOG_SORT_FIELDS,
+        'available_direction': REQUESTLOG_SORT_DIRECTIONS,
+        'last_id': last_id
     }
     logger.debug('requestlog')
     if request.is_ajax():
@@ -54,9 +83,10 @@ def requestlog(request):
         }
         for req in context['requests']:
             json_data['requests'] += [{
+                'id': req.id,
                 'date': req.date.strftime('%Y-%m-%d %H:%M:%S'),
                 'method': req.method,
-                'path': req.path
+                'path': req.path,
             }]
         return HttpResponse(
             json.dumps(json_data),
