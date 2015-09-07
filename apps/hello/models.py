@@ -28,6 +28,7 @@ class RequestLog(models.Model):
     # set some reasonable field length
     # http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
     path = models.CharField(max_length=2048)
+    priority = models.IntegerField(default=0)
 
 
 class ObjectEvents(models.Model):

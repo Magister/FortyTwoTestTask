@@ -1,6 +1,6 @@
 from StringIO import StringIO
 import json
-import time
+import random
 from datetime import date
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
@@ -123,10 +123,6 @@ class TestRequestLog(TestCase):
         self.assertIsNotNone(response.context['last_update'])
         self.assertEqual(response.context['requests_count'],
                          REQUESTLOG_NUM_REQUESTS)
-        self.assertIsNotNone(response.context['direction'])
-        self.assertIsNotNone(response.context['order'])
-        self.assertIsNotNone(response.context['available_order'])
-        self.assertIsNotNone(response.context['available_direction'])
         self.assertIsNotNone(response.context['last_id'])
 
     def test_context_has_correct_requests(self):
@@ -161,8 +157,29 @@ class TestRequestLog(TestCase):
         data = json.loads(response.content)
         self.assertEqual(len(data['requests']), 1)
         self.assertIsNotNone(data['last_update'])
-        self.assertIsNotNone(data['requests'][0]['id'])
+        req = data['requests'][0]
+        self.assertIsNotNone(req['id'])
+        self.assertIsNotNone(req['date'])
+        self.assertIsNotNone(req['method'])
+        self.assertIsNotNone(req['path'])
+        self.assertIsNotNone(req['priority'])
         self.assertEqual(data['requests_count'], REQUESTLOG_NUM_REQUESTS)
+
+    def test_requests_ordering(self):
+        """Tests that requests are shown in correct order"""
+        # make some requests
+        random.seed()
+        for i in range(1, 11):
+            self.c.get(reverse('index'))
+            self.c.get(reverse('requestlog'))
+            req = RequestLog.objects.order_by('id').last()
+            req.priority = random.randrange(100)
+        response = self.c.get(reverse('requestlog'))
+        collection = response.context['requests']
+        last_prio = collection[0].priority
+        for item in collection:
+            self.assertGreaterEqual(item.priority, last_prio)
+            last_prio = item.priority
 
     def test_async_update_filtering(self):
         """Tests that we can filter async requests by id"""
@@ -186,33 +203,21 @@ class TestRequestLog(TestCase):
             first().id
         self.assertEqual(data['requests'][0]['id'], second_request_id)
 
-    def do_test_requestlog_order(self, field, direction):
-        params = {'order': field, 'direction': direction}
-        response = self.c.get(reverse('requestlog'), params)
-        collection = response.context['requests']
-        last_value = getattr(collection[0], field)
-        if direction == '-':
-            func = self.assertLessEqual
-        else:
-            func = self.assertGreaterEqual
-        for req in collection:
-            func(getattr(req, field), last_value)
-            last_value = getattr(req, field)
-
-    def test_requests_ordering(self):
-        """Tests that requests are shown in correct order"""
+    def test_can_change_request_priority(self):
+        """Tests that request priority can be edited"""
         # make some requests
         for i in range(1, 11):
             self.c.get(reverse('index'))
             self.c.get(reverse('requestlog'))
-            time.sleep(0.1)
-        # test various order & direction combinations
-        self.do_test_requestlog_order('date', '-')
-        self.do_test_requestlog_order('date', '')
-        self.do_test_requestlog_order('method', '-')
-        self.do_test_requestlog_order('method', '')
-        self.do_test_requestlog_order('path', '-')
-        self.do_test_requestlog_order('path', '')
+        last_request = RequestLog.objects.last()
+        NEW_PRIO = 10
+        response = self.c.post(
+            reverse('edit_request'),
+            {'id': last_request.id, 'priority': NEW_PRIO},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertRedirects(response, reverse('requestlog'))
+        req = RequestLog.objects.get(id=last_request.id)
+        self.assertEqual(req.priority, NEW_PRIO)
 
 
 class TestEditMainPage(TestCase):
