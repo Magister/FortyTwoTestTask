@@ -23,12 +23,12 @@ $(window).on("blur focus", function(e) {
     update_title();
 });
 
-
 // polling
-$(document).ready(function() {
+function setupPolling() {
     setInterval(function() {
         $.ajax({
             url: window.url,
+            data: {'idfrom': window.last_id},
             type: "get",
             success: function(response) {
                 $('#last_update').html(format_date(new Date(response.last_update)))
@@ -42,10 +42,27 @@ $(document).ready(function() {
                         var new_row = row_template.clone();
                         var req = response.requests[i];
                         new_row.attr('id', req.id);
+                        new_row.attr('data-priority', req.priority);
                         new_row.find('.request-date').html(req.date);
                         new_row.find('.request-method').html(req.method);
                         new_row.find('.request-path').html(req.path);
-                        $(table_body).prepend(new_row);
+                        var req_prio = new_row.find('.request-priority');
+                        req_prio.find('.view').html(req.priority);
+                        req_prio.find('input[name=priority]').val(req.priority);
+                        req_prio.find('input[name=id]').val(req.id);
+                        // find a place to insert row
+                        var inserted = false;
+                        $(table_body).find('tr').each(function() {
+                            if ($(this).attr('data-priority') <= req.priority) {
+                                $(this).before(new_row);
+                                inserted = true;
+                                return false;
+                            }
+                        });
+                        // no place found, insert at the end
+                        if (!inserted) {
+                            $(table_body).append(new_row);
+                        }
                         // check if request id is greater than last displayed id
                         if (window.last_id < req.id) {
                             new_requests = new_requests + 1;
@@ -63,4 +80,25 @@ $(document).ready(function() {
             }
         })
     }, 1000);
+}
+
+// request editing
+function setupRequestEditing() {
+    var table = $('#requests-body');
+    table.find('.request-priority').click(function(e) {
+        var $this = $(this);
+        var editing = $this.find('.view').hasClass('hide');
+        if (editing) {
+            return;
+        } else {
+            e.preventDefault();
+            $this.find('.view').addClass('hide');
+            $this.find('.edit').removeClass('hide');
+        }
+    });
+}
+
+$(document).ready(function() {
+    setupPolling();
+    setupRequestEditing()
 });

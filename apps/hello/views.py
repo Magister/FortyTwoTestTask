@@ -3,7 +3,8 @@ import logging
 from django.contrib.auth.decorators import login_required
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
-from django.http.response import HttpResponse, HttpResponseRedirect
+from django.http.response import HttpResponse, HttpResponseRedirect, \
+    HttpResponseBadRequest
 from django.shortcuts import render
 from django.utils import timezone
 from apps.hello import tools
@@ -25,8 +26,18 @@ def index(request):
 
 
 def requestlog(request):
-    requests = RequestLog.objects.order_by(
-        'priority', '-date')[:REQUESTLOG_NUM_REQUESTS]
+    id_from = None
+    if request.is_ajax():
+        id_str = request.GET.get('idfrom')
+        if id_str is not None:
+            try:
+                id_from = int(id_str)
+            except ValueError:
+                pass
+    requests = RequestLog.objects.order_by('-priority', '-date')
+    if id_from is not None:
+        requests = requests.filter(id__gt=id_from)
+    requests = requests[:REQUESTLOG_NUM_REQUESTS]
     last_id = 0
     for req in requests:
         last_id = max(last_id, req.id)
@@ -49,12 +60,28 @@ def requestlog(request):
                 'date': req.date.strftime('%Y-%m-%d %H:%M:%S'),
                 'method': req.method,
                 'path': req.path,
+                'priority': req.priority,
             }]
         return HttpResponse(
             json.dumps(json_data),
             content_type="application/json")
     else:
         return render(request, 'hello/requestlog.html', context)
+
+
+def edit_request(request):
+    if request.method != 'POST':
+        return HttpResponseBadRequest()
+    try:
+        req_id = int(request.POST.get('id'))
+        priority = int(request.POST.get('priority'))
+    except ValueError:
+        return HttpResponseBadRequest()
+    req = RequestLog.objects.get(id=req_id)
+    if req.priority != priority:
+        req.priority = priority
+        req.save()
+    return HttpResponseRedirect(reverse('requestlog'))
 
 
 @login_required

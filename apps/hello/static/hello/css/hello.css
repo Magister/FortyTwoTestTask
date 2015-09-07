@@ -16,3 +16,12 @@
     max-width: 200px;
     max-height: 200px;
 }
+
+td.request-priority {
+    width: 20%;
+}
+
+.request-row input.inline-edit {
+    width: 60px;
+    display: inline;
+}

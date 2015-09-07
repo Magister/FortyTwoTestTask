@@ -6,7 +6,8 @@ urlpatterns = patterns(
     '',
     url(r'^$', views.index, name='index'),
     url(r'^edit$', views.edit, name='edit'),
-    url(r'^requestlog$', views.requestlog, name='requestlog')
+    url(r'^requestlog$', views.requestlog, name='requestlog'),
+    url(r'^edit_request$', views.edit_request, name='edit_request'),
 )
 
 if settings.DEBUG:
