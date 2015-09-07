@@ -39,7 +39,10 @@ Request log -
                         <td class="request-method">{{ request.method }}</td>
                         <td class="request-path">{{ request.path }}</td>
                         <td class="request-priority">
-                            <span class="view">{{ request.priority }}</span>
+                            <span class="view">
+                                {{ request.priority }}
+                                <span class="show-on-hover">&#9997;</span>
+                            </span>
                             <div class="edit hide input-group">
                                 <form name="edit_priority" action="{% url 'edit_request' %}" method="post">
                                     {% csrf_token %}

@@ -25,3 +25,12 @@ td.request-priority {
     width: 60px;
     display: inline;
 }
+
+.show-on-hover {
+    display: none;
+    cursor: pointer;
+}
+
+td.request-priority:hover > .view .show-on-hover {
+    display: inline;
+}
