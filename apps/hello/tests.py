@@ -157,7 +157,12 @@ class TestRequestLog(TestCase):
         data = json.loads(response.content)
         self.assertEqual(len(data['requests']), 1)
         self.assertIsNotNone(data['last_update'])
-        self.assertIsNotNone(data['requests'][0]['id'])
+        req = data['requests'][0]
+        self.assertIsNotNone(req['id'])
+        self.assertIsNotNone(req['date'])
+        self.assertIsNotNone(req['method'])
+        self.assertIsNotNone(req['path'])
+        self.assertIsNotNone(req['priority'])
         self.assertEqual(data['requests_count'], REQUESTLOG_NUM_REQUESTS)
 
     def test_requests_ordering(self):
@@ -175,6 +180,28 @@ class TestRequestLog(TestCase):
         for item in collection:
             self.assertGreaterEqual(item.priority, last_prio)
             last_prio = item.priority
+
+    def test_async_update_filtering(self):
+        """Tests that we can filter async requests by id"""
+        # make two requests
+        self.c.get(reverse('index'))
+        self.c.get(reverse('requestlog'))
+        # ensure we have two items if filter is not requested
+        response = self.c.get(reverse('requestlog'),
+                              HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        data = json.loads(response.content)
+        self.assertEqual(len(data['requests']), 2)
+        # now use filter to get only second request
+        idfrom = RequestLog.objects.first().id
+        response = self.c.get(reverse('requestlog'),
+                              {"idfrom": idfrom},
+                              HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        data = json.loads(response.content)
+        self.assertEqual(len(data['requests']), 1)
+        self.assertEqual(data['requests'][0]['path'], reverse('requestlog'))
+        second_request_id = RequestLog.objects.order_by("-id"). \
+            first().id
+        self.assertEqual(data['requests'][0]['id'], second_request_id)
 
     def test_can_change_request_priority(self):
         """Tests that request priority can be edited"""
