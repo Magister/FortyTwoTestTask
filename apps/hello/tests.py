@@ -1,6 +1,6 @@
 from StringIO import StringIO
 import json
-import time
+import random
 from datetime import date
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
@@ -123,10 +123,6 @@ class TestRequestLog(TestCase):
         self.assertIsNotNone(response.context['last_update'])
         self.assertEqual(response.context['requests_count'],
                          REQUESTLOG_NUM_REQUESTS)
-        self.assertIsNotNone(response.context['direction'])
-        self.assertIsNotNone(response.context['order'])
-        self.assertIsNotNone(response.context['available_order'])
-        self.assertIsNotNone(response.context['available_direction'])
         self.assertIsNotNone(response.context['last_id'])
 
     def test_context_has_correct_requests(self):
@@ -164,55 +160,21 @@ class TestRequestLog(TestCase):
         self.assertIsNotNone(data['requests'][0]['id'])
         self.assertEqual(data['requests_count'], REQUESTLOG_NUM_REQUESTS)
 
-    def test_async_update_filtering(self):
-        """Tests that we can filter async requests by id"""
-        # make two requests
-        self.c.get(reverse('index'))
-        self.c.get(reverse('requestlog'))
-        # ensure we have two items if filter is not requested
-        response = self.c.get(reverse('requestlog'),
-                              HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        data = json.loads(response.content)
-        self.assertEqual(len(data['requests']), 2)
-        # now use filter to get only second request
-        idfrom = RequestLog.objects.first().id
-        response = self.c.get(reverse('requestlog'),
-                              {"idfrom": idfrom},
-                              HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        data = json.loads(response.content)
-        self.assertEqual(len(data['requests']), 1)
-        self.assertEqual(data['requests'][0]['path'], reverse('requestlog'))
-        second_request_id = RequestLog.objects.order_by("-id"). \
-            first().id
-        self.assertEqual(data['requests'][0]['id'], second_request_id)
-
-    def do_test_requestlog_order(self, field, direction):
-        params = {'order': field, 'direction': direction}
-        response = self.c.get(reverse('requestlog'), params)
-        collection = response.context['requests']
-        last_value = getattr(collection[0], field)
-        if direction == '-':
-            func = self.assertLessEqual
-        else:
-            func = self.assertGreaterEqual
-        for req in collection:
-            func(getattr(req, field), last_value)
-            last_value = getattr(req, field)
-
     def test_requests_ordering(self):
         """Tests that requests are shown in correct order"""
         # make some requests
+        random.seed()
         for i in range(1, 11):
             self.c.get(reverse('index'))
             self.c.get(reverse('requestlog'))
-            time.sleep(0.1)
-        # test various order & direction combinations
-        self.do_test_requestlog_order('date', '-')
-        self.do_test_requestlog_order('date', '')
-        self.do_test_requestlog_order('method', '-')
-        self.do_test_requestlog_order('method', '')
-        self.do_test_requestlog_order('path', '-')
-        self.do_test_requestlog_order('path', '')
+            req = RequestLog.objects.order_by('id').last()
+            req.priority = random.randrange(100)
+        response = self.c.get(reverse('requestlog'))
+        collection = response.context['requests']
+        last_prio = collection[0].priority
+        for item in collection:
+            self.assertGreaterEqual(item.priority, last_prio)
+            last_prio = item.priority
 
 
 class TestEditMainPage(TestCase):
