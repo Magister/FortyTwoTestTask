@@ -176,6 +176,22 @@ class TestRequestLog(TestCase):
             self.assertGreaterEqual(item.priority, last_prio)
             last_prio = item.priority
 
+    def test_can_change_request_priority(self):
+        """Tests that request priority can be edited"""
+        # make some requests
+        for i in range(1, 11):
+            self.c.get(reverse('index'))
+            self.c.get(reverse('requestlog'))
+        last_request = RequestLog.objects.last()
+        NEW_PRIO = 10
+        response = self.c.post(
+            reverse('edit_request'),
+            {'id': last_request.id, 'priority': NEW_PRIO},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertRedirects(response, reverse('requestlog'))
+        req = RequestLog.objects.get(id=last_request.id)
+        self.assertEqual(req.priority, NEW_PRIO)
+
 
 class TestEditMainPage(TestCase):
     fixtures = ['app_user.json', 'users.json']
