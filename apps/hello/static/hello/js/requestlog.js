@@ -30,7 +30,6 @@ $(document).ready(function() {
         $.ajax({
             url: window.url,
             type: "get",
-            data: {idfrom: window.last_id},
             success: function(response) {
                 $('#last_update').html(format_date(new Date(response.last_update)))
                 // update table
